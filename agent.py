@@ -33,6 +33,7 @@ class RESEARCHER(Agent):
         """
         print('class RESEARCHER(Agent):.__init__')
         super().__init__(unique_id, model)
+        self.name = name
         
         #agent's impact which is different from publication count since different feilds have different publication rates
         self.agent_impact_distribution = getattr(np.random, agent_impact_distribution)
