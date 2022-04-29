@@ -12,6 +12,14 @@ from mesa.datacollection import DataCollector
 from ipynb.fs.full.agent import RESEARCHER
 
 
+def calculate_average_publications(model):
+    publication_counts = [agent.publication_count for agent in model.schedule.agents]
+    publication_count_total = sum(publication_counts)
+    agents_total = model.n_agents
+    average_publications_per_agent = publication_count_total/agents_total
+    return average_publications_per_agent
+
+
 class SCIENTIFIC_WORLD(Model):
     """
     Model class for the SCIENTIFIC_WORLD model.
@@ -20,7 +28,11 @@ class SCIENTIFIC_WORLD(Model):
         self,
         n_agents: int,
         width: float,
-        height: float
+        height: float,
+        agent_impact_distribution: str,
+        initial_publication_count_distribution: str,
+        interest_in_replication_distribution: str,
+        name: str = 'scientific_world'
         ):
         """
         Initialize a research project for a given researcher.
@@ -31,6 +43,8 @@ class SCIENTIFIC_WORLD(Model):
         ):
         """
         super().__init__()
+        
+        self._name = name
         
         #'n_agents' number of agents in the model
         self.n_agents = n_agents
@@ -44,19 +58,6 @@ class SCIENTIFIC_WORLD(Model):
         #torus = False means the edges do not wrap around; this way we can observe clustering effects of researchers based on their impact
         self.grid = ContinuousSpace(self.width, self.height, torus=False)
         #self.datacollector = DataCollector( model_reporters={"Gini": compute_gini}, agent_reporters={"Wealth": "wealth"} )        
-        
-        
-        
-        
-        
-        agent_impact_distribution = 'normal'#CHANGE_ME delete and use in init once bug fixed
-        initial_publication_count_distribution = 'normal'#CHANGE_ME delete and use in init once bug fixed
-        interest_in_replication_distribution = 'normal'#CHANGE_ME delete and use in init once bug fixed
-        
-        
-        
-        
-        
         
         #generate an agent/researcher
         for i in range(self.n_agents):
@@ -73,12 +74,13 @@ class SCIENTIFIC_WORLD(Model):
             self.schedule.add(individual)
             #position agent is to be placed on
             #place the agent on the grid
-            self.grid.place_agent(INDIVIDUAL, (x, y))
-        
-        #automated
-        self.running = True
-        #collects data at each time step
-        self.datacollector.collect(self)
+            self.grid.place_agent(individual, (x, y))
+            
+            self.datacollector = DataCollector(
+                model_reporters={'Average_Publications': calculate_average_publications},
+                agent_reporters={'Publication_Count': 'publication_count',
+                                'Agent_Impact': 'agent_impact'})
+
     
     #a single time step
     def step(self):
@@ -92,4 +94,4 @@ class SCIENTIFIC_WORLD(Model):
         #'n' number of steps taken for the model
         for i in range(n):
             self.step()
-        
+            
