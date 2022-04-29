@@ -5,28 +5,24 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from mesa import Model, Agent
-from mesa.time import StagedActivation
+from mesa.time import SimultaneousActivation
 from mesa.space import ContinuousSpace
 from mesa.datacollection import DataCollector
 
 
 class RESEARCHER(Agent):
     """
-    RESEARCHER agent
+    Create a RESEARCHER agent
     """
-
     def __init__(
         self,
-        position: (float, float),
         agent_impact_distribution: str,
         initial_publication_count_distribution: str,
         interest_in_replication_distribution: str,
         name: str = 'researcher'
         ):
         """
-        Create a new RESEARCHER agent.
         Argument(s):
-            position: arbitrary posiition that the researcher lies on in the continuous space
             agent_impact_distribution: distribution to draw from for a researcher's impact in the SCIENTIFIFC_WORLD
             initial_publication_count_distribution: distribution to draw from for a researcher's inititial number of publications
             interest_in_replication_distribution: distribution to draw from for a researcher's probability of conducting a replication study
@@ -50,10 +46,10 @@ class RESEARCHER(Agent):
                                    
         #initial publication count; since we don't want to start with all researchers at 0 which would not be possible unless research was "judt discovered"
         self.initial_publication_count_distribution = getattr(np.random, initial_publication_count_distribution)
-        self.initial_publication_count = self.initial_publication_count_distribution(1) #CHANGE_ME to be a function of interest in replication; higher interest in replications leads to more publications in general
+        self.publication_count = self.initial_publication_count_distribution(1) #CHANGE_ME to be a function of interest in replication; higher interest in replications leads to more publications in general
         
         #how far a researcher can reach within the continuous space to collaborate with another researcher (e.g., high impact researchers can collaborate with anyone but low impact researchers can only collaborate with researchers with slightly higher impact than them)
-        self.radius_of_collaboration = self.agent_impact + self.initial_publication_count ** self.interest_in_replication   #CHANGE_ME to a different formula; also more lenient                        
+        self.radius_of_collaboration = self.agent_impact + self.publication_count ** self.interest_in_replication   #CHANGE_ME to a different formula; also more lenient                        
                   
 
                                    
@@ -82,9 +78,9 @@ class RESEARCHER(Agent):
                     #power of replication study
                     self.study_type.power = getattr(np.random, power_distribution)//2 #CHANGE_ME to include sample size in equasion  
                     #length of replication study
-                    self.study_type.study_length = #CHANGE_ME add an equasion that includes sample size and researcher impact; shorter for 'replication'     
+                    self.study_type.study_length = getattr(np.random, sample_size_distribution) #CHANGE_ME add an equasion that includes sample size and researcher impact; shorter for 'replication'     
                     #effect size of replication study; calculated upon study generation which is not representataive of the real world but won't induce any effects since we are doing a simulation
-                    self.study_type.study = #CHANGE_ME add an equasion that includes sample size in equasion
+                    self.study_type.study = getattr(np.random, power_distribution) #CHANGE_ME add an equasion that includes sample size in equasion
                     
                     print('study_is_a_replication')
                                    
@@ -94,52 +90,62 @@ class RESEARCHER(Agent):
                     #power of novel study
                     self.study_type.power = getattr(np.random, power_distribution) #CHANGE_ME to include equasion  
                     #length of replication study
-                    self.study_type.study_length = #CHANGE_ME add an equasion that includes sample size and researcher impact; longer for 'replication'    
+                    self.study_type.study_length = random.uniform(-1, 5) #CHANGE_ME add an equasion that includes sample size and researcher impact; longer for 'replication'    
                     #effect size of replication study; calculated upon study generation which is not representataive of the real world but won't induce any effects since we are doing a simulation
-                    self.study_type.effect_size = #CHANGE_ME add an equasion that includes sample size in equasion
+                    self.study_type.effect_size = random.uniform(-1, 5) #CHANGE_ME add an equasion that includes sample size in equasion
                         
-                     print('study_is_novel')                                  
-    
-                                   
-    def publication_attempt(
-                        self,
-                            )
-        """
-        Attempt to publish a research project for a given project for a given researcher.
-        Argument(s):
-    
-        """
-        print('publication_attempted')
-                                   
-        if self.study_type == 'replication':
-                    self.study_type.publishability = 1
-                                   
-    
+                    print('study_is_novel')
         
-        elif self.study_type == 'novel':   
-                                   
-                                   
-                                   
-                                   
-                                   
-                                   
-                                   
-                                   
-                                   
-                                   
-                        
+        else raise ValueError('study_type was not: "replication" or "novel".')
         
+        # time = 0 for this specific study                           
+        self.study_type.time_elapsed = 0
+    
+                                   
+    def publication_attempt(self)
+        """
+        Attempt to publish a research project for a given project for a given researcher.    
+        """
+        print('publication_attempted')     
+        
+        self.study_type.publish_status = random.choices(['published', 'rejected'],
+            [self.study_type.publishability, 1-self.study_type.publishability])
+                                   
+        if self.study_type.publish_status = 'published':
+                                   self.publication_count += 1
+                                   self.agent_impact += 1 #CHANGE_ME
+                                   
+                                   
+        elif self.study_type.publish_status = 'rejected'
+                                   self.study_type.publish_status.re_attempt_probability = random.uniform(0, 1) #CHANGE_ME to function dependednt on researcher impact, sample size, etc.
+                                   self.study_type.publish_status.re_attempt_status = random.choices(['re_attempt', 'withhold'],
+                                                                                                     [self.study_type.publish_status.re_attempt_probability,
+                                                                                                      1-self.study_type.publish_status.re_attempt_probability])
+                                   if self.study_type.publish_status.re_attempt_status = 're_attempt': pass
+                                   
+                                   elif self.study_type.publish_status.re_attempt_status = 'withhold': initiate_project()
+                                   
+                                   else raise ValueError('study was not re-attempted to publish or withheld; after a failed publication attemp')
+                                   
+                                   
+         else raise ValueError('study was not published or rejected')                           
+                                   
+                                   
+                              
+                                   
     def step(self):
-        neighbourhood_impact = 0
-        for neighbor in self.model.grid.iter_neighbors(self.position, True):
-            if neighbor.type == self.type:
-                similar += 1
-
-        # If unhappy, move:
-        if similar < self.model.homophily:
-            self.model.grid.move_to_empty(self)
-        else:
-            self.model.happy += 1
-
-
-
+        #update time elapsed
+        self.study_type.time_elapsed += 1
+          
+        #if study time has been reached (try to publish the first time) or has exceeded (try publishing again)                          
+        if self.study_type.time_elapsed >= self.study_type.study_length:
+                                               
+            if self.study_type == 'replication':
+                                   self.study_type.publishability = 1
+                                   
+                                   
+                    
+            elif self.study_type == 'novel':
+                                   self.study_type.publishability = random.uniform(0, 1)#CHANGE_ME function of study effect size and power (which is already a function of sample size) and researcher impact
+        
+        else pass
