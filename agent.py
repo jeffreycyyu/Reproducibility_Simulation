@@ -17,6 +17,7 @@ class RESEARCHER(Agent):
     def __init__(
         self,
         unique_id,
+        model,
         position: (float, float),
         agent_impact_distribution: str,
         initial_publication_count_distribution: str,
@@ -32,8 +33,9 @@ class RESEARCHER(Agent):
             name: name
         """
         print('class RESEARCHER(Agent):.__init__')
-        super().__init__(unique_id, model)
-        self.name = name
+        super().__init__(position, model)
+        
+        self._name = name
         
         #agent's impact which is different from publication count since different feilds have different publication rates
         self.agent_impact_distribution = getattr(np.random, agent_impact_distribution)
@@ -43,8 +45,8 @@ class RESEARCHER(Agent):
         self.interest_in_replication_distribution = getattr(np.random, interest_in_replication_distribution) #CHANGE_ME to be a function of researcher impact
         self.interest_in_replication = self.interest_in_replication_distribution(1)
         
-        #position within the arbitrary continuous space
-        self.x, self.y = self.position
+        # #position within the arbitrary continuous space
+        # self.x, self.y = self.position
                                    
         #initial publication count; since we don't want to start with all researchers at 0 which would not be possible unless research was "judt discovered"
         self.initial_publication_count_distribution = getattr(np.random, initial_publication_count_distribution)
@@ -120,6 +122,7 @@ class RESEARCHER(Agent):
             self.publication_count += 1
             self.agent_impact += 1 #CHANGE_ME
             #start a new project after publishing
+            self.move()
             initiate_project()
                     
                                    
@@ -134,8 +137,10 @@ class RESEARCHER(Agent):
             if self.study_type.publish_status.re_attempt_status == 're_attempt': pass
 
             #do not add to publication count or agent impact and start a new project
-            elif self.study_type.publish_status.re_attempt_status == 'withhold': initiate_project()
-
+            elif self.study_type.publish_status.re_attempt_status == 'withhold':
+                self.move()
+                initiate_project()
+                
             else: raise ValueError('study was not re-attempted to publish or withheld; after a failed publication attemp')
                                    
         else: raise ValueError('study was not published or rejected')                           
