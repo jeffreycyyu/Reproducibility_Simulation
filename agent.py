@@ -9,13 +9,6 @@ from mesa.time import SimultaneousActivation
 from mesa.space import ContinuousSpace
 from mesa.datacollection import DataCollector
 
-SCIENTIFIC_WORLD.width = 15
-SCIENTIFIC_WORLD.height = 15
-agent_impact_distribution = 'normal'
-initial_publication_count_distribution = 'normal'
-interest_in_replication_distribution = 'normal'
-
-
 
 class RESEARCHER(Agent):
     """
