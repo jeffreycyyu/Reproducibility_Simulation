@@ -22,6 +22,8 @@ class RESEARCHER(Agent):
         agent_impact_distribution: str,
         initial_publication_count_distribution: str,
         interest_in_replication_distribution: str,
+        sample_size_distribution: str,
+        power_distribution: str,
         name: str = 'researcher'
         ):
         """
@@ -30,8 +32,10 @@ class RESEARCHER(Agent):
             agent_impact_distribution: distribution to draw from for a researcher's impact in the SCIENTIFIFC_WORLD
             initial_publication_count_distribution: distribution to draw from for a researcher's inititial number of publications
             interest_in_replication_distribution: distribution to draw from for a researcher's probability of conducting a replication study
+            sample_size_distribution: distribution to draw from for a study's sample size
+            power_distribution: distribution to draw from for a study's inherent power without regards to sample size (power will be automatically adjusted for a given sample size)
             name: name
-        """
+            """
         print('class RESEARCHER(Agent):.__init__')
         super().__init__(unique_id, model)
         
@@ -55,9 +59,16 @@ class RESEARCHER(Agent):
         #how far a researcher can reach within the continuous space to collaborate with another researcher (e.g., high impact researchers can collaborate with anyone but low impact researchers can only collaborate with researchers with slightly higher impact than them)
         self.radius_of_collaboration = self.agent_impact + self.publication_count * self.interest_in_replication   #CHANGE_ME to a different formula; also more lenient                        
         
+        #sample size distribution for when a new project is initiated
+        self.sample_size_distribution = sample_size_distribution
+        
+        #sample size distribution for when a new project is initiated
+        self.power_distribution = power_distribution
+        
         #set global time to differentiate between first study conducted in run vs. subsequent studies; for all agents
         self.global_time = 0
-                                   
+        
+        
     def initiate_project(
                     self,
                     sample_size_distribution: str,
@@ -111,7 +122,7 @@ class RESEARCHER(Agent):
 
             print('study_is_novel')
         
-        else: raise ValueError('study type was not replication or novel')
+        else: raise ValueError('study_type was not "replication" or "novel"')
         
                                    
     def publication_attempt(self):
@@ -128,7 +139,7 @@ class RESEARCHER(Agent):
             self.agent_impact += 1 #CHANGE_ME
             #start a new project after publishing
             self.move()
-            initiate_project()
+            self.initiate_project(self.sample_size_distribution, self.power_distribution)
                     
                                    
                                    
@@ -144,7 +155,7 @@ class RESEARCHER(Agent):
             #do not add to publication count or agent impact and start a new project
             elif self.current_study.publish_status.re_attempt_status == 'withhold':
                 self.move()
-                initiate_project()
+                self.initiate_project(self.sample_size_distribution, self.power_distribution)
                 
             else: raise ValueError('RESEARCHER did not "re-attempt" to publish or "withheld" current_study; after a failed publication attemp')
                                    
@@ -165,7 +176,7 @@ class RESEARCHER(Agent):
         
         #if this is the start of the model's run, start by initiating a study
         if self.global_time == 0:
-            initiate_project()
+            self.initiate_project(self.sample_size_distribution, self.power_distribution)
         
         #if this is not the start of the model's run, update current study attributes
         elif self.global_time > 0:
@@ -185,9 +196,11 @@ class RESEARCHER(Agent):
                 elif self.study_type == 'novel':
                     self.current_study.publishability = random.uniform(0, 1)#CHANGE_ME function of study effect size and power (which is already a function of sample size) and researcher impact
                     publication_attempt()
+                
+                else: ValueError('study_type was not "replication" or "novel"')
         
             else: pass
         
-        else raise ValueError('global_time is negative')
+        else: raise ValueError('global_time is negative')
         
         
