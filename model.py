@@ -36,10 +36,10 @@ class SCIENTIFIC_WORLD(Model):
         self.homophily = homophily
         
         self.schedule = SimultaneousActivation(self)
-        self.grid = ContinuousSpace(width, height, torus=False)
+        self.grid = ContinuousSpace(self.width, self.height, torus=False)
         
         for i in range(self.n_agents):
-            a = RESEARCHER(i, self)
+            individual = RESEARCHER(i, self)
         
         
     def step(self):
