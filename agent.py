@@ -86,9 +86,10 @@ class RESEARCHER(Agent):
         self.study_type = random.choices(
             ['replication', 'novel'],
             [self.interest_in_replication, 1-self.interest_in_replication])
+        
                                    
         #generate a replication study         
-        if self.study_type == 'replication':
+        if self.study_type[0] == 'replication':
             #initiate a new study
             self.current_study = None
             #sample size of replication study
@@ -105,7 +106,7 @@ class RESEARCHER(Agent):
 
             print('study_is_a_replication')
         #generate a novel study                            
-        elif self.study_type == 'novel':
+        elif self.study_type[0] == 'novel':
             #initiate a new study
             self.current_study = None
             #sample size of novel study
@@ -122,7 +123,7 @@ class RESEARCHER(Agent):
 
             print('study_is_novel')
         
-        else: raise ValueError('study_type was not "replication" or "novel"')
+        else: raise ValueError('study_type was not "replication" or "novel" for "initiate_project" function')
         
                                    
     def publication_attempt(self):
@@ -134,7 +135,7 @@ class RESEARCHER(Agent):
         self.current_study.publish_status = random.choices(['published', 'rejected'],
             [self.current_study.publishability, 1-self.current_study.publishability])
                                    
-        if self.current_study.publish_status == 'published':
+        if self.current_study.publish_status[0] == 'published':
             self.publication_count += 1
             self.agent_impact += 1 #CHANGE_ME
             #start a new project after publishing
@@ -143,17 +144,17 @@ class RESEARCHER(Agent):
                     
                                    
                                    
-        elif self.current_study.publish_status == 'rejected':
+        elif self.current_study.publish_status[0] == 'rejected':
             self.current_study.publish_status.re_attempt_probability = random.uniform(0, 1) #CHANGE_ME to function dependednt on researcher impact, sample size, etc.
             self.current_study.publish_status.re_attempt_status = random.choices(['re_attempt', 'withhold'], 
                                                                               [self.current_study.publish_status.re_attempt_probability, 
                                                                                1-self.current_study.publish_status.re_attempt_probability])
                 
             #try publishing again at next timestep
-            if self.current_study.publish_status.re_attempt_status == 're_attempt': pass
+            if self.current_study.publish_status.re_attempt_status[0] == 're_attempt': pass
 
             #do not add to publication count or agent impact and start a new project
-            elif self.current_study.publish_status.re_attempt_status == 'withhold':
+            elif self.current_study.publish_status.re_attempt_status[0] == 'withhold':
                 self.move()
                 self.initiate_project(self.sample_size_distribution, self.power_distribution)
                 
@@ -187,20 +188,20 @@ class RESEARCHER(Agent):
             #if study time has been reached (try to publish the first time) or has exceeded (try publishing again)                          
             if self.current_study.time_elapsed >= self.current_study.study_length:
 
-                if self.study_type == 'replication':
+                if self.study_type[0] == 'replication':
                     #replications are always publishable
                     self.current_study.publishability = 1 #CHANGE_ME maybe change; ask JB
                     publication_attempt()
                     
                 #novel studies have a publishability proabbaility as a function of multiple researcher and project parameters
-                elif self.study_type == 'novel':
+                elif self.study_type[0] == 'novel':
                     self.current_study.publishability = random.uniform(0, 1)#CHANGE_ME function of study effect size and power (which is already a function of sample size) and researcher impact
                     publication_attempt()
                 
-                else: ValueError('study_type was not "replication" or "novel"')
+                else: ValueError('study_type was not "replication" or "novel" for "step" function')
         
             else: pass
         
-        else: raise ValueError('global_time is negative')
+        else: raise ValueError('global_time is negative') 
         
         
