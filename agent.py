@@ -50,7 +50,7 @@ class RESEARCHER(Agent):
         self.publication_count = self.initial_publication_count_distribution(1) #CHANGE_ME to be a function of interest in replication; higher interest in replications leads to more publications in general
         
         #how far a researcher can reach within the continuous space to collaborate with another researcher (e.g., high impact researchers can collaborate with anyone but low impact researchers can only collaborate with researchers with slightly higher impact than them)
-        self.radius_of_collaboration = self.agent_impact + self.publication_count ** self.interest_in_replication   #CHANGE_ME to a different formula; also more lenient                        
+        self.radius_of_collaboration = self.agent_impact + self.publication_count * self.interest_in_replication   #CHANGE_ME to a different formula; also more lenient                        
                   
 
                                    
