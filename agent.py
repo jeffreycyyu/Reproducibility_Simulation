@@ -90,36 +90,32 @@ class RESEARCHER(Agent):
                                    
         #generate a replication study         
         if self.study_type[0] == 'replication':
-            #initiate a new study
-            self.current_study = None
             #sample size of replication study
-            self.current_study.sample_size = getattr(np.random, sample_size_distribution)//2 #CHANGE_ME to a different ratio/function that includes researcher impact
+            self.sample_size = getattr(np.random, sample_size_distribution) #CHANGE_ME to a different ratio/function that includes researcher impact
             #power of replication study
-            self.current_study.power = getattr(np.random, power_distribution)//2 #CHANGE_ME to include sample size in equasion  
+            self.power = getattr(np.random, power_distribution) #CHANGE_ME to include sample size in equasion  
             #length of replication study
-            self.current_study.study_length = getattr(np.random, sample_size_distribution) #CHANGE_ME add an equasion that includes sample size and researcher impact; shorter for 'replication'     
+            self.study_length = getattr(np.random, sample_size_distribution) #CHANGE_ME add an equasion that includes sample size and researcher impact; shorter for 'replication'     
             #effect size of replication study; calculated upon study generation which is not representataive of the real world but won't induce any effects since we are doing a simulation
-            self.current_study.study = getattr(np.random, power_distribution) #CHANGE_ME add an equasion that includes sample size in equasion
+            self.study = getattr(np.random, power_distribution) #CHANGE_ME add an equasion that includes sample size in equasion
 
             # time = 0 for this specific study                           
-            self.current_study.time_elapsed = 0
+            self.time_elapsed = 0
 
             print('study_is_a_replication')
         #generate a novel study                            
         elif self.study_type[0] == 'novel':
-            #initiate a new study
-            self.current_study = None
             #sample size of novel study
-            self.current_study.sample_size = getattr(np.random, sample_size_distribution) #to function that includes researcher impact
+            self.sample_size = getattr(np.random, sample_size_distribution) #to function that includes researcher impact
             #power of novel study
-            self.current_study.power = getattr(np.random, power_distribution) #CHANGE_ME to include equasion  
+            self.power = getattr(np.random, power_distribution) #CHANGE_ME to include equasion  
             #length of replication study
-            self.current_study.study_length = random.uniform(-1, 5) #CHANGE_ME add an equasion that includes sample size and researcher impact; longer for 'replication'    
+            self.study_length = random.uniform(-1, 5) #CHANGE_ME add an equasion that includes sample size and researcher impact; longer for 'replication'    
             #effect size of replication study; calculated upon study generation which is not representataive of the real world but won't induce any effects since we are doing a simulation
-            self.current_study.effect_size = random.uniform(-1, 5) #CHANGE_ME add an equasion that includes sample size in equasion
+            self.effect_size = random.uniform(-1, 5) #CHANGE_ME add an equasion that includes sample size in equasion
 
             # time = 0 for this specific study                           
-            self.current_study.time_elapsed = 0
+            self.time_elapsed = 0
 
             print('study_is_novel')
         
@@ -132,10 +128,10 @@ class RESEARCHER(Agent):
         """
         print('publication_attempted')     
         
-        self.current_study.publish_status = random.choices(['published', 'rejected'],
-            [self.current_study.publishability, 1-self.current_study.publishability])
+        self.publish_status = random.choices(['published', 'rejected'],
+            [self.publishability, 1-self.publishability])
                                    
-        if self.current_study.publish_status[0] == 'published':
+        if self.publish_status[0] == 'published':
             self.publication_count += 1
             self.agent_impact += 1 #CHANGE_ME
             #start a new project after publishing
@@ -144,17 +140,17 @@ class RESEARCHER(Agent):
                     
                                    
                                    
-        elif self.current_study.publish_status[0] == 'rejected':
-            self.current_study.publish_status.re_attempt_probability = random.uniform(0, 1) #CHANGE_ME to function dependednt on researcher impact, sample size, etc.
-            self.current_study.publish_status.re_attempt_status = random.choices(['re_attempt', 'withhold'], 
-                                                                              [self.current_study.publish_status.re_attempt_probability, 
-                                                                               1-self.current_study.publish_status.re_attempt_probability])
+        elif self.publish_status[0] == 'rejected':
+            self.publish_status.re_attempt_probability = random.uniform(0, 1) #CHANGE_ME to function dependednt on researcher impact, sample size, etc.
+            self.publish_status.re_attempt_status = random.choices(['re_attempt', 'withhold'], 
+                                                                              [self.publish_status.re_attempt_probability, 
+                                                                               1-self.publish_status.re_attempt_probability])
                 
             #try publishing again at next timestep
-            if self.current_study.publish_status.re_attempt_status[0] == 're_attempt': pass
+            if self.publish_status.re_attempt_status[0] == 're_attempt': pass
 
             #do not add to publication count or agent impact and start a new project
-            elif self.current_study.publish_status.re_attempt_status[0] == 'withhold':
+            elif self.publish_status.re_attempt_status[0] == 'withhold':
                 self.move()
                 self.initiate_project(self.sample_size_distribution, self.power_distribution)
                 
@@ -183,19 +179,19 @@ class RESEARCHER(Agent):
         elif self.global_time > 0:
         
             #update time elapsed
-            self.current_study.time_elapsed += 1
+            self.time_elapsed += 1
 
             #if study time has been reached (try to publish the first time) or has exceeded (try publishing again)                          
-            if self.current_study.time_elapsed >= self.current_study.study_length:
+            if self.time_elapsed >= self.study_length:
 
                 if self.study_type[0] == 'replication':
                     #replications are always publishable
-                    self.current_study.publishability = 1 #CHANGE_ME maybe change; ask JB
+                    self.publishability = 1 #CHANGE_ME maybe change; ask JB
                     publication_attempt()
                     
                 #novel studies have a publishability proabbaility as a function of multiple researcher and project parameters
                 elif self.study_type[0] == 'novel':
-                    self.current_study.publishability = random.uniform(0, 1)#CHANGE_ME function of study effect size and power (which is already a function of sample size) and researcher impact
+                    self.publishability = random.uniform(0, 1)#CHANGE_ME function of study effect size and power (which is already a function of sample size) and researcher impact
                     publication_attempt()
                 
                 else: ValueError('study_type was not "replication" or "novel" for "step" function')
@@ -203,5 +199,5 @@ class RESEARCHER(Agent):
             else: pass
         
         else: raise ValueError('global_time is negative') 
-        
+       
         
