@@ -9,6 +9,13 @@ from mesa.time import SimultaneousActivation
 from mesa.space import ContinuousSpace
 from mesa.datacollection import DataCollector
 
+SCIENTIFIC_WORLD.width = 15
+SCIENTIFIC_WORLD.height = 15
+agent_impact_distribution = 'normal'
+initial_publication_count_distribution = 'normal'
+interest_in_replication_distribution = 'normal'
+
+
 
 class RESEARCHER(Agent):
     """
@@ -42,7 +49,7 @@ class RESEARCHER(Agent):
         
         #position within the arbitrary continuous space
         self.position = (np.random(random.uniform(0, SCIENTIFIC_WORLD.width),
-        np.random(random.uniform(0, SCIENTIFIC_WORLD.height))
+                                   np.random(random.uniform(0, SCIENTIFIC_WORLD.height))))
                                    
         #initial publication count; since we don't want to start with all researchers at 0 which would not be possible unless research was "judt discovered"
         self.initial_publication_count_distribution = getattr(np.random, initial_publication_count_distribution)
@@ -82,6 +89,9 @@ class RESEARCHER(Agent):
                     #effect size of replication study; calculated upon study generation which is not representataive of the real world but won't induce any effects since we are doing a simulation
                     self.study_type.study = getattr(np.random, power_distribution) #CHANGE_ME add an equasion that includes sample size in equasion
                     
+                    # time = 0 for this specific study                           
+                    self.study_type.time_elapsed = 0
+                    
                     print('study_is_a_replication')
                                    
         elif self.study_type == 'novel':
@@ -93,16 +103,16 @@ class RESEARCHER(Agent):
                     self.study_type.study_length = random.uniform(-1, 5) #CHANGE_ME add an equasion that includes sample size and researcher impact; longer for 'replication'    
                     #effect size of replication study; calculated upon study generation which is not representataive of the real world but won't induce any effects since we are doing a simulation
                     self.study_type.effect_size = random.uniform(-1, 5) #CHANGE_ME add an equasion that includes sample size in equasion
-                        
+                    
+                    # time = 0 for this specific study                           
+                    self.study_type.time_elapsed = 0
+                    
                     print('study_is_novel')
         
-        else raise ValueError('study_type was not: "replication" or "novel".')
+        else: raise ValueError('study type was not replication or novel')
         
-        # time = 0 for this specific study                           
-        self.study_type.time_elapsed = 0
-    
                                    
-    def publication_attempt(self)
+    def publication_attempt(self):
         """
         Attempt to publish a research project for a given project for a given researcher.    
         """
@@ -111,24 +121,25 @@ class RESEARCHER(Agent):
         self.study_type.publish_status = random.choices(['published', 'rejected'],
             [self.study_type.publishability, 1-self.study_type.publishability])
                                    
-        if self.study_type.publish_status = 'published':
+        if self.study_type.publish_status == 'published':
                                    self.publication_count += 1
                                    self.agent_impact += 1 #CHANGE_ME
                                    
                                    
-        elif self.study_type.publish_status = 'rejected'
+        elif self.study_type.publish_status == 'rejected':
                                    self.study_type.publish_status.re_attempt_probability = random.uniform(0, 1) #CHANGE_ME to function dependednt on researcher impact, sample size, etc.
                                    self.study_type.publish_status.re_attempt_status = random.choices(['re_attempt', 'withhold'],
                                                                                                      [self.study_type.publish_status.re_attempt_probability,
                                                                                                       1-self.study_type.publish_status.re_attempt_probability])
-                                   if self.study_type.publish_status.re_attempt_status = 're_attempt': pass
+                    
+                                   if self.study_type.publish_status.re_attempt_status == 're_attempt': pass
                                    
-                                   elif self.study_type.publish_status.re_attempt_status = 'withhold': initiate_project()
+                                   elif self.study_type.publish_status.re_attempt_status == 'withhold': initiate_project()
                                    
-                                   else raise ValueError('study was not re-attempted to publish or withheld; after a failed publication attemp')
+                                   else: raise ValueError('study was not re-attempted to publish or withheld; after a failed publication attemp')
                                    
                                    
-         else raise ValueError('study was not published or rejected')                           
+        else: raise ValueError('study was not published or rejected')                           
                                    
                                    
                               
@@ -148,4 +159,4 @@ class RESEARCHER(Agent):
             elif self.study_type == 'novel':
                                    self.study_type.publishability = random.uniform(0, 1)#CHANGE_ME function of study effect size and power (which is already a function of sample size) and researcher impact
         
-        else pass
+        else: pass
