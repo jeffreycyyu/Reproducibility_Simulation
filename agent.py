@@ -16,6 +16,7 @@ class RESEARCHER(Agent):
     """
     def __init__(
         self,
+        position: (float, float),
         agent_impact_distribution: str,
         initial_publication_count_distribution: str,
         interest_in_replication_distribution: str,
@@ -23,6 +24,7 @@ class RESEARCHER(Agent):
         ):
         """
         Argument(s):
+            position: position in arbitrary continuous space
             agent_impact_distribution: distribution to draw from for a researcher's impact in the SCIENTIFIFC_WORLD
             initial_publication_count_distribution: distribution to draw from for a researcher's inititial number of publications
             interest_in_replication_distribution: distribution to draw from for a researcher's probability of conducting a replication study
@@ -30,7 +32,6 @@ class RESEARCHER(Agent):
         """
         print('class RESEARCHER(Agent):.__init__')
         super().__init__(position, model)
-        
         
         #agent's impact which is different from publication count since different feilds have different publication rates
         self.agent_impact_distribution = getattr(np.random, agent_impact_distribution)
@@ -41,8 +42,7 @@ class RESEARCHER(Agent):
         self.interest_in_replication = self.interest_in_replication_distribution(1)
         
         #position within the arbitrary continuous space
-        self.position = (np.random(random.uniform(0, SCIENTIFIC_WORLD.width),
-                                   np.random(random.uniform(0, SCIENTIFIC_WORLD.height))))
+        self.x, self.y = self.position
                                    
         #initial publication count; since we don't want to start with all researchers at 0 which would not be possible unless research was "judt discovered"
         self.initial_publication_count_distribution = getattr(np.random, initial_publication_count_distribution)
