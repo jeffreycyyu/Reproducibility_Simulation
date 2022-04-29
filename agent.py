@@ -176,16 +176,18 @@ class RESEARCHER(Agent):
             #if study time has been reached (try to publish the first time) or has exceeded (try publishing again)                          
             if self.current_study.time_elapsed >= self.current_study.study_length:
 
-                if self.current_study == 'replication':
+                if self.study_type == 'replication':
                     #replications are always publishable
                     self.current_study.publishability = 1 #CHANGE_ME maybe change; ask JB
                     publication_attempt()
                     
                 #novel studies have a publishability proabbaility as a function of multiple researcher and project parameters
-                elif self.current_study == 'novel':
+                elif self.study_type == 'novel':
                     self.current_study.publishability = random.uniform(0, 1)#CHANGE_ME function of study effect size and power (which is already a function of sample size) and researcher impact
                     publication_attempt()
         
             else: pass
         
-        else raise ValueError('global_time is negative') 
+        else raise ValueError('global_time is negative')
+        
+        
