@@ -32,6 +32,8 @@ class SCIENTIFIC_WORLD(Model):
         agent_impact_distribution: str,
         initial_publication_count_distribution: str,
         interest_in_replication_distribution: str,
+        sample_size_distribution: str,
+        power_distribution: str,
         name: str = 'scientific_world'
         ):
         """
@@ -64,12 +66,15 @@ class SCIENTIFIC_WORLD(Model):
             x = self.random.randrange(self.grid.width)#CHANGE_ME
             y = self.random.randrange(self.grid.height)#CHANGE_ME  
             position = (x, y)
-            individual = RESEARCHER(i,
+            individual = RESEARCHER(
+                                    i,
                                     self,
                                     position,
                                     agent_impact_distribution,
                                     initial_publication_count_distribution,
-                                    interest_in_replication_distribution)
+                                    interest_in_replication_distribution,
+                                    sample_size_distribution,
+                                    power_distribution)
             #add agent into the model
             self.schedule.add(individual)
             #position agent is to be placed on
