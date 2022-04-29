@@ -15,7 +15,13 @@ from ipynb.fs.full.model import SCIENTIFIC_WORLD
 
 
 
-test_model = SCIENTIFIC_WORLD(50, 20, 20)
+test_model = SCIENTIFIC_WORLD(30, 20, 20, 'normal', 'normal', 'normal')
 for i in range(20):
     test_model.step()
 
+    
+average_count = model.datacollector.get_model_vars_dataframe()
+average_count.plot()
+    
+agent_publication_impact_count = model.datacollector.get_agent_vars_dataframe()
+print(agent_publication_impact_count)
