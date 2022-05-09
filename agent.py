@@ -1,4 +1,3 @@
-#study length is built in method or function error 
 import random
 import math, sys
 import numpy as np
@@ -7,7 +6,7 @@ import matplotlib.pyplot as plt
 
 from mesa import Model, Agent
 from mesa.time import SimultaneousActivation
-from mesa.space import ContinuousSpace
+from mesa.space import Grid
 from mesa.datacollection import DataCollector
 
 
@@ -29,7 +28,7 @@ class RESEARCHER(Agent):
         ):
         """
         Argument(s):
-            position: position in arbitrary continuous space
+            position: position in arbitrary Grid space
             agent_impact_distribution: distribution to draw from for a researcher's impact in the SCIENTIFIFC_WORLD
             initial_publication_count_distribution: distribution to draw from for a researcher's inititial number of publications
             interest_in_replication_distribution: distribution to draw from for a researcher's probability of conducting a replication study
@@ -50,14 +49,14 @@ class RESEARCHER(Agent):
         self.interest_in_replication_distribution = getattr(np.random, interest_in_replication_distribution) #CHANGE_ME to be a function of researcher impact
         self.interest_in_replication = self.interest_in_replication_distribution(1)
         
-        #position within the arbitrary continuous space
+        #position within the arbitrary Grid space
         self.position = position
                                    
         #initial publication count; since we don't want to start with all researchers at 0 which would not be possible unless research was "judt discovered"
         self.initial_publication_count_distribution = getattr(np.random, initial_publication_count_distribution)
         self.publication_count = self.initial_publication_count_distribution(1) #CHANGE_ME to be a function of interest in replication; higher interest in replications leads to more publications in general
         
-        #how far a researcher can reach within the continuous space to collaborate with another researcher (e.g., high impact researchers can collaborate with anyone but low impact researchers can only collaborate with researchers with slightly higher impact than them)
+        #how far a researcher can reach within the Grid space to collaborate with another researcher (e.g., high impact researchers can collaborate with anyone but low impact researchers can only collaborate with researchers with slightly higher impact than them)
         self.radius_of_collaboration = self.agent_impact + self.publication_count * self.interest_in_replication   #CHANGE_ME to a different formula; also more lenient                        
         
         #sample size distribution for when a new project is initiated
@@ -66,12 +65,11 @@ class RESEARCHER(Agent):
         #sample size distribution for when a new project is initiated
         self.power_distribution = power_distribution
         
+        
         #set global time to differentiate between first study conducted in run vs. subsequent studies; for all agents
-
         global global_time
         global study_length
         global time_elapsed
-        
         global_time = 0
         study_length = 0
         time_elapsed = 0
@@ -104,13 +102,17 @@ class RESEARCHER(Agent):
         #generate a replication study         
         if study_type[0] == 'replication':
             #sample size of replication study
-            self.sample_size = getattr(np.random, sample_size_distribution) #CHANGE_ME to a different ratio/function that includes researcher impact
+            method_sample_size = getattr(np.random, sample_size_distribution) #CHANGE_ME to a different ratio/function that includes researcher impact
+            self.sample_size = method_sample_size(1)
             #power of replication study
-            self.power = getattr(np.random, power_distribution) #CHANGE_ME to include sample size in equasion  
+            method_power = getattr(np.random, power_distribution) #CHANGE_ME to include sample size in equasion  
+            self.power = method_power(1)
             #length of replication study
-            study_length = getattr(np.random, sample_size_distribution) #CHANGE_ME add an equasion that includes sample size and researcher impact; shorter for 'replication' 
+            method_study_length = getattr(np.random, sample_size_distribution)#CHANGE_ME add an equasion that includes sample size and researcher impact; shorter for 'replication' 
+            study_length = method_study_length(1) 
             #effect size of replication study; calculated upon study generation which is not representataive of the real world but won't induce any effects since we are doing a simulation
-            self.study = getattr(np.random, power_distribution) #CHANGE_ME add an equasion that includes sample size in equasion
+            method_effect_size = getattr(np.random, power_distribution) #CHANGE_ME add an equasion that includes sample size in equasion
+            self.effect_size = method_effect_size(1)
 
             # time = 0 for this specific study  
             time_elapsed = 0
@@ -119,9 +121,11 @@ class RESEARCHER(Agent):
         #generate a novel study                            
         elif study_type[0] == 'novel':
             #sample size of novel study
-            self.sample_size = getattr(np.random, sample_size_distribution) #to function that includes researcher impact
+            method_sample_size = getattr(np.random, sample_size_distribution) #CHANGE_ME to a different ratio/function that includes researcher impact
+            self.sample_size = method_sample_size(1)
             #power of novel study
-            self.power = getattr(np.random, power_distribution) #CHANGE_ME to include equasion  
+            method_power = getattr(np.random, power_distribution) #CHANGE_ME to include sample size in equasion  
+            self.power = method_power(1)
             #length of replication study
             study_length = random.uniform(-1, 5) #CHANGE_ME add an equasion that includes sample size and researcher impact; longer for 'replication'    
             #effect size of replication study; calculated upon study generation which is not representataive of the real world but won't induce any effects since we are doing a simulation
@@ -155,29 +159,33 @@ class RESEARCHER(Agent):
                                    
                                    
         elif self.publish_status[0] == 'rejected':
-            self.publish_status.re_attempt_probability = random.uniform(0, 1) #CHANGE_ME to function dependednt on researcher impact, sample size, etc.
-            self.publish_status.re_attempt_status = random.choices(['re_attempt', 'withhold'], 
-                                                                              [float(str(self.publish_status.re_attempt_probability)), 
-                                                                               1-float(str(self.publish_status.re_attempt_probability))])
+            self.re_attempt_probability = random.uniform(0, 1) #CHANGE_ME to function dependednt on researcher impact, sample size, etc.
+            self.re_attempt_status = random.choices(['re_attempt', 'withhold'], 
+                                                                              [float(str(self.re_attempt_probability)), 
+                                                                               1-float(str(self.re_attempt_probability))])
                 
             #try publishing again at next timestep
-            if self.publish_status.re_attempt_status[0] == 're_attempt': pass
+            if self.re_attempt_status[0] == 're_attempt': pass
 
             #do not add to publication count or agent impact and start a new project
-            elif self.publish_status.re_attempt_status[0] == 'withhold':
+            elif self.re_attempt_status[0] == 'withhold':
                 self.move()
                 self.initiate_project(self.sample_size_distribution, self.power_distribution)
                 
-            else: raise ValueError('RESEARCHER did not "re-attempt" to publish or "withheld" current_study; after a failed publication attemp')
+            else: raise ValueError('RESEARCHER did not "re-attempt" to publish or "withheld" current_study; after a failed publication attempt')
                                    
         else: raise ValueError('current_study was not "published" or "rejected"')                           
                         
                 
     def move(self): #CHANGE_ME change all parts of function to account for agent impact and radius of collaboration
-            possible_steps = self.model.grid.get_neighbors(self.position, 5.0)
+            possible_steps = self.model.Grid.get_neighborhood(
+            self.pos,
+            moore=True,
+            include_center=False)
             new_position = self.random.choice(possible_steps)
-            self.model.ContinuousSpace.move_agent(self, new_position)
-        
+            print('agent new 1')
+            self.model.Grid.move_agent(self, new_position)
+            
                                    
     def step(self):
 
