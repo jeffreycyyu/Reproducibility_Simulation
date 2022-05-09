@@ -1,3 +1,4 @@
+#study length is built in method or function error 
 import random
 import math, sys
 import numpy as np
@@ -49,8 +50,8 @@ class RESEARCHER(Agent):
         self.interest_in_replication_distribution = getattr(np.random, interest_in_replication_distribution) #CHANGE_ME to be a function of researcher impact
         self.interest_in_replication = self.interest_in_replication_distribution(1)
         
-        # #position within the arbitrary continuous space
-        # self.x, self.y = self.position
+        #position within the arbitrary continuous space
+        self.position = position
                                    
         #initial publication count; since we don't want to start with all researchers at 0 which would not be possible unless research was "judt discovered"
         self.initial_publication_count_distribution = getattr(np.random, initial_publication_count_distribution)
@@ -66,8 +67,15 @@ class RESEARCHER(Agent):
         self.power_distribution = power_distribution
         
         #set global time to differentiate between first study conducted in run vs. subsequent studies; for all agents
-        self.global_time = 0
+
+        global global_time
+        global study_length
+        global time_elapsed
         
+        global_time = 0
+        study_length = 0
+        time_elapsed = 0
+
         
     def initiate_project(
                     self,
@@ -82,40 +90,45 @@ class RESEARCHER(Agent):
         """
         print('initiated_project')
         
+        global global_time
+        global study_length
+        global time_elapsed
+        
+        global study_type
         #decide project type (replication or novel)
-        self.study_type = random.choices(
+        study_type = random.choices(
             ['replication', 'novel'],
             [self.interest_in_replication, 1-self.interest_in_replication])
         
                                    
         #generate a replication study         
-        if self.study_type[0] == 'replication':
+        if study_type[0] == 'replication':
             #sample size of replication study
             self.sample_size = getattr(np.random, sample_size_distribution) #CHANGE_ME to a different ratio/function that includes researcher impact
             #power of replication study
             self.power = getattr(np.random, power_distribution) #CHANGE_ME to include sample size in equasion  
             #length of replication study
-            self.study_length = getattr(np.random, sample_size_distribution) #CHANGE_ME add an equasion that includes sample size and researcher impact; shorter for 'replication'     
+            study_length = getattr(np.random, sample_size_distribution) #CHANGE_ME add an equasion that includes sample size and researcher impact; shorter for 'replication' 
             #effect size of replication study; calculated upon study generation which is not representataive of the real world but won't induce any effects since we are doing a simulation
             self.study = getattr(np.random, power_distribution) #CHANGE_ME add an equasion that includes sample size in equasion
 
-            # time = 0 for this specific study                           
-            self.time_elapsed = 0
+            # time = 0 for this specific study  
+            time_elapsed = 0
 
             print('study_is_a_replication')
         #generate a novel study                            
-        elif self.study_type[0] == 'novel':
+        elif study_type[0] == 'novel':
             #sample size of novel study
             self.sample_size = getattr(np.random, sample_size_distribution) #to function that includes researcher impact
             #power of novel study
             self.power = getattr(np.random, power_distribution) #CHANGE_ME to include equasion  
             #length of replication study
-            self.study_length = random.uniform(-1, 5) #CHANGE_ME add an equasion that includes sample size and researcher impact; longer for 'replication'    
+            study_length = random.uniform(-1, 5) #CHANGE_ME add an equasion that includes sample size and researcher impact; longer for 'replication'    
             #effect size of replication study; calculated upon study generation which is not representataive of the real world but won't induce any effects since we are doing a simulation
             self.effect_size = random.uniform(-1, 5) #CHANGE_ME add an equasion that includes sample size in equasion
-
-            # time = 0 for this specific study                           
-            self.time_elapsed = 0
+            
+            # time = 0 for this specific study
+            time_elapsed = 0
 
             print('study_is_novel')
         
@@ -132,6 +145,7 @@ class RESEARCHER(Agent):
             [self.publishability, 1-self.publishability])
                                    
         if self.publish_status[0] == 'published':
+            
             self.publication_count += 1
             self.agent_impact += 1 #CHANGE_ME
             #start a new project after publishing
@@ -143,8 +157,8 @@ class RESEARCHER(Agent):
         elif self.publish_status[0] == 'rejected':
             self.publish_status.re_attempt_probability = random.uniform(0, 1) #CHANGE_ME to function dependednt on researcher impact, sample size, etc.
             self.publish_status.re_attempt_status = random.choices(['re_attempt', 'withhold'], 
-                                                                              [self.publish_status.re_attempt_probability, 
-                                                                               1-self.publish_status.re_attempt_probability])
+                                                                              [float(str(self.publish_status.re_attempt_probability)), 
+                                                                               1-float(str(self.publish_status.re_attempt_probability))])
                 
             #try publishing again at next timestep
             if self.publish_status.re_attempt_status[0] == 're_attempt': pass
@@ -160,44 +174,52 @@ class RESEARCHER(Agent):
                         
                 
     def move(self): #CHANGE_ME change all parts of function to account for agent impact and radius of collaboration
-            possible_steps = self.model.grid.get_neighborhood(
-                self.position,
-                moore=True,
-                include_center=False)
+            possible_steps = self.model.grid.get_neighbors(self.position, 5.0)
             new_position = self.random.choice(possible_steps)
-            self.model.grid.move_agent(self, new_position)
-
-                      
+            self.model.ContinuousSpace.move_agent(self, new_position)
+        
                                    
     def step(self):
+
+        global global_time
+        global study_length
+        global time_elapsed
         
         #if this is the start of the model's run, start by initiating a study
-        if self.global_time == 0:
+        if global_time == 0:
             self.initiate_project(self.sample_size_distribution, self.power_distribution)
+            
+            #add a timestep to this agents perception of global time (do this regardless of agent or action taken)
+            global_time += 1
         
         #if this is not the start of the model's run, update current study attributes
-        elif self.global_time > 0:
-        
+        elif global_time > 0:
             #update time elapsed
-            self.time_elapsed += 1
+            time_elapsed += 1
+            #add a timestep to this agents perception of global time (do this regardless of agent or action taken)
+            global_time += 1
 
-            #if study time has been reached (try to publish the first time) or has exceeded (try publishing again)                          
-            if self.time_elapsed >= self.study_length:
+            #if study time has been reached (try to publish the first time) or has exceeded (try publishing again)  
+            if time_elapsed >= study_length:
+                
+                global study_type
 
-                if self.study_type[0] == 'replication':
+                if study_type[0] == 'replication':
                     #replications are always publishable
                     self.publishability = 1 #CHANGE_ME maybe change; ask JB
-                    publication_attempt()
+                    self.publication_attempt()
                     
                 #novel studies have a publishability proabbaility as a function of multiple researcher and project parameters
-                elif self.study_type[0] == 'novel':
+                elif study_type[0] == 'novel':
                     self.publishability = random.uniform(0, 1)#CHANGE_ME function of study effect size and power (which is already a function of sample size) and researcher impact
-                    publication_attempt()
+                    self.publication_attempt()
                 
                 else: ValueError('study_type was not "replication" or "novel" for "step" function')
         
-            else: pass
+            else:
+                
+                global_time = global_time
+                #add a timestep to this agents perception of global time (do this regardless of agent or action taken)
+                global_time += 1
         
         else: raise ValueError('global_time is negative') 
-       
-        
