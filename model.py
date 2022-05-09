@@ -6,16 +6,16 @@ import matplotlib.pyplot as plt
 
 from mesa import Model, Agent
 from mesa.time import SimultaneousActivation
-from mesa.space import ContinuousSpace
+from mesa.space import Grid
 from mesa.datacollection import DataCollector
 
 from ipynb.fs.full.agent import RESEARCHER
 
 
-def calculate_average_publications(model):
-    publication_counts = [agent.publication_count for agent in model.schedule.agents]
+def calculate_average_publications(Model):
+    publication_counts = [agent.publication_count for agent in Model.schedule.agents]
     publication_count_total = sum(publication_counts)
-    agents_total = model.n_agents
+    agents_total = Model.n_agents
     average_publications_per_agent = publication_count_total/agents_total
     return average_publications_per_agent
 
@@ -40,8 +40,8 @@ class SCIENTIFIC_WORLD(Model):
         Initialize a research project for a given researcher.
         Argument(s):
             n_agents: number of agents in the model
-            width: width of continuous space
-            height: height  of continuous space
+            width: width of Grid space
+            height: height  of Grid space
         ):
         """
         super().__init__()
@@ -50,21 +50,21 @@ class SCIENTIFIC_WORLD(Model):
         
         #'n_agents' number of agents in the model
         self.n_agents = n_agents
-        #width of continuous space
+        #width of Grid space
         self.width = width
-        #height of continuous space
+        #height of Grid space
         self.height = height
         #simultaneous since we want neighborhood effects to only take place after the publications of other has been out for some positive amount of time
         self.schedule = SimultaneousActivation(self)
-        #continuous space model as opposed to discrete grid-structure; personal preference
+        #Grid space model
         #torus = False means the edges do not wrap around; this way we can observe clustering effects of researchers based on their impact
-        self.grid = ContinuousSpace(self.width, self.height, torus=False)
-        #self.datacollector = DataCollector( model_reporters={"Gini": compute_gini}, agent_reporters={"Wealth": "wealth"} )        
+        self.Grid = Grid(self.width, self.height, False)
+        #self.datacollector = DataCollector( model_reporters={"Gini": compute_gini}, agent_reporters={"Wealth": "wealth"} )   
         
         #generate an agent/researcher
         for i in range(self.n_agents):
-            x = self.random.randrange(self.grid.width)#CHANGE_ME
-            y = self.random.randrange(self.grid.height)#CHANGE_ME  
+            x = self.random.randrange(self.Grid.width)#CHANGE_ME
+            y = self.random.randrange(self.Grid.height)#CHANGE_ME  
             position = (x, y)
             individual = RESEARCHER(
                                     i,
@@ -78,8 +78,8 @@ class SCIENTIFIC_WORLD(Model):
             #add agent into the model
             self.schedule.add(individual)
             #position agent is to be placed on
-            #place the agent on the grid
-            self.grid.place_agent(individual, (x, y))
+            #place the agent on the Grid
+            self.Grid.place_agent(individual, (x, y))
             
             self.datacollector = DataCollector(
                 model_reporters={'Average_Publications': calculate_average_publications},
@@ -99,4 +99,4 @@ class SCIENTIFIC_WORLD(Model):
         #'n' number of steps taken for the model
         for i in range(n):
             self.step()
-            
+        
