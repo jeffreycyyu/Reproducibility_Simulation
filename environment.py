@@ -52,7 +52,7 @@ class SIMULATE_SAMPLE_FROM_WORLD:
         simulated_sample = random.uniform(bin_intervals[bin_choice[0]-1], bin_intervals[bin_choice[0]])
 
         #simulated sample value
-        return simulated_sample
+        return int(simulated_sample)
     
     
     
