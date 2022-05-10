@@ -37,10 +37,10 @@ class SIMULATE_SAMPLE_FROM_WORLD:
     def __call__(self):
     
         #bin limits
-        bin_intervals = np.arange(bin_minimum, bin_maximum + bin_size, bin_size).tolist()
+        bin_intervals = np.arange(self.bin_minimum, self.bin_maximum + self.bin_size, self.bin_size).tolist()
 
         #counts for how many professors fall into each bins
-        bin_counts = pd.cut(h_indexes, bins=bin_intervals).value_counts()
+        bin_counts = pd.cut(self.real_world_values, bins=bin_intervals).value_counts()
 
         #probabilities belonging to a given bin
         bin_probabilities = [float(i)/sum(bin_counts) for i in bin_counts]
