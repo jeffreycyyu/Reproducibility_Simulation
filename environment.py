@@ -37,15 +37,15 @@ def SIMULATE_SAMPLE_FROM_WORLD(real_world_values, bin_minimum, bin_maximum, bin_
 #H-INDEX (TEST)
 
 #list of UBC psychology professor h-indexes; values taken from google scholar
-#CHANGE_ME (unfinished list)
+#CHANGE_ME (unfinished)
 h_indexes_ubc_psychology = [61, 27, 41, 27, 25, 45, 95, 17, 49, 55, 15, 71, 72]
 bin_minimum = 0
 bin_maximum = 100
 bin_size = 5
 
-simulated_ubc_psychology_h_index = SIMULATE_SAMPLE_FROM_WORLD(h_indexes_ubc_psychology, bin_minimum, bin_maximum, bin_size)
+simulated_ubc_psychology_h_index = int(SIMULATE_SAMPLE_FROM_WORLD(h_indexes_ubc_psychology, bin_minimum, bin_maximum, bin_size))
 
-print(simulated_ubc_psychology_h_index) 
+print(simulated_ubc_psychology_h_index)
   
   
  
