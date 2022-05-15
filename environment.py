@@ -34,7 +34,7 @@ class SIMULATE_SAMPLE_FROM_WORLD:
         self._name = name
 
     
-    def __call__(self):
+    def __call__(self, n_values):
     
         #bin limits
         bin_intervals = np.arange(self.bin_minimum, self.bin_maximum + self.bin_size, self.bin_size).tolist()
@@ -49,10 +49,12 @@ class SIMULATE_SAMPLE_FROM_WORLD:
         bin_choice = random.choices(range(1, len(bin_intervals)), bin_probabilities)
 
         #uniformly sample within the given bin choice
-        simulated_sample = random.uniform(bin_intervals[bin_choice[0]-1], bin_intervals[bin_choice[0]])
+        simulated_sample = np.random.uniform(bin_intervals[bin_choice[0]-1], bin_intervals[bin_choice[0]], n_values)
+        
+        simulated_sample_integers = [int(x) for x in simulated_sample]
 
         #simulated sample value
-        return int(simulated_sample)
+        return simulated_sample_integers
     
     
     
@@ -61,14 +63,12 @@ class SIMULATE_SAMPLE_FROM_WORLD:
 
 #list of UBC psychology professor h-indexes; values taken from google scholar
 #CHANGE_ME (unfinished)
-h_indexes_ubc_psychology = [61, 27, 41, 27, 25, 45, 95, 17, 49, 55, 15, 71, 72]
+h_indexes_ubc_psychology = [61, 27, 41, 27, 25, 45, 95, 17, 49, 55, 15, 71, 72, 76, 12, 10, 38, 29, 67, 96, 35, 11, 33, 32, 56]
 bin_minimum = 0
 bin_maximum = 100
 bin_size = 5
 
 simulated_ubc_psychology_h_index = SIMULATE_SAMPLE_FROM_WORLD(h_indexes_ubc_psychology, bin_minimum, bin_maximum, bin_size)
 
-print(simulated_ubc_psychology_h_index())
-  
-  
- 
+print(simulated_ubc_psychology_h_index(100))
+
